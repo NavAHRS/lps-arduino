@@ -1,4 +1,4 @@
-#include <Wire.h>
+#include <TwoWire.h>
 #include <LPS.h>
 
 LPS ps;
@@ -6,7 +6,7 @@ LPS ps;
 void setup()
 {
   Serial.begin(9600);
-  Wire.begin();
+  twMaster.begin();
 
   if (!ps.init())
   {

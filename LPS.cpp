@@ -1,5 +1,5 @@
 #include <LPS.h>
-#include <Wire.h>
+#include <TwoWire.h>
 
 // Defines ///////////////////////////////////////////////////////////
 
@@ -78,10 +78,10 @@ void LPS::writeReg(int reg, byte value)
     reg = translated_regs[-reg];
   }
 
-  Wire.beginTransmission(address);
-  Wire.write(reg);
-  Wire.write(value);
-  Wire.endTransmission();
+  twMaster.beginTransmission(address);
+  twMaster.write(reg);
+  twMaster.write(value);
+  twMaster.endTransmission();
 }
 
 // reads register
@@ -95,12 +95,12 @@ byte LPS::readReg(int reg)
     reg = translated_regs[-reg];
   }
 
-  Wire.beginTransmission(address);
-  Wire.write(reg);
-  Wire.endTransmission(false); // restart
-  Wire.requestFrom(address, (byte)1);
-  value = Wire.read();
-  Wire.endTransmission();
+  twMaster.beginTransmission(address);
+  twMaster.write(reg);
+  twMaster.endTransmission(false); // restart
+  twMaster.requestFrom(address, (byte)1);
+  value = twMaster.read();
+  twMaster.endTransmission();
 
   return value;
 }
@@ -120,17 +120,17 @@ float LPS::readPressureInchesHg(void)
 // reads pressure and returns raw 24-bit sensor output
 int32_t LPS::readPressureRaw(void)
 {
-  Wire.beginTransmission(address);
+  twMaster.beginTransmission(address);
   // assert MSB to enable register address auto-increment
-  Wire.write(PRESS_OUT_XL | (1 << 7));
-  Wire.endTransmission();
-  Wire.requestFrom(address, (byte)3);
+  twMaster.write(PRESS_OUT_XL | (1 << 7));
+  twMaster.endTransmission();
+  twMaster.requestFrom(address, (byte)3);
 
-  while (Wire.available() < 3);
+  while (twMaster.available() < 3);
 
-  uint8_t pxl = Wire.read();
-  uint8_t pl = Wire.read();
-  uint8_t ph = Wire.read();
+  uint8_t pxl = twMaster.read();
+  uint8_t pl = twMaster.read();
+  uint8_t ph = twMaster.read();
 
   // combine bytes
   return (int32_t)(int8_t)ph << 16 | (uint16_t)pl << 8 | pxl;
@@ -151,16 +151,16 @@ float LPS::readTemperatureF(void)
 // reads temperature and returns raw 16-bit sensor output
 int16_t LPS::readTemperatureRaw(void)
 {
-  Wire.beginTransmission(address);
+  twMaster.beginTransmission(address);
   // assert MSB to enable register address auto-increment
-  Wire.write(TEMP_OUT_L | (1 << 7));
-  Wire.endTransmission();
-  Wire.requestFrom(address, (byte)2);
+  twMaster.write(TEMP_OUT_L | (1 << 7));
+  twMaster.endTransmission();
+  twMaster.requestFrom(address, (byte)2);
 
-  while (Wire.available() < 2);
+  while (twMaster.available() < 2);
 
-  uint8_t tl = Wire.read();
-  uint8_t th = Wire.read();
+  uint8_t tl = twMaster.read();
+  uint8_t th = twMaster.read();
 
   // combine bytes
   return (int16_t)(th << 8 | tl);
@@ -223,13 +223,13 @@ bool LPS::detectDevice(deviceType device)
 
 int LPS::testWhoAmI(byte address)
 {
-  Wire.beginTransmission(address);
-  Wire.write(WHO_AM_I);
-  Wire.endTransmission();
+  twMaster.beginTransmission(address);
+  twMaster.write(WHO_AM_I);
+  twMaster.endTransmission();
 
-  Wire.requestFrom(address, (byte)1);
-  if (Wire.available())
-    return Wire.read();
+  twMaster.requestFrom(address, (byte)1);
+  if (twMaster.available())
+    return twMaster.read();
   else
     return TEST_REG_NACK;
 }
